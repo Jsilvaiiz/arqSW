@@ -54,13 +54,33 @@ try:
                     print("Usuarios listados.")
             elif accion == "login":
                 usuarios = cargar_usuarios()
-                usuario = next((u for u in usuarios if u["nombre"] == datos["nombre"] and u["rut"] == datos["rut"]), None)
+                usuario = next((u for u in usuarios if u["rut"] == datos["rut"]), None)
+                if not usuario:
+                    send_message(sock, "users", "ERROR: Usuario no encontrado")
+                    print("Intento de login fallido: usuario no encontrado.")
+                elif usuario["rol"] == "admin":
+                    if usuario["contrasena"] == datos["contrasena"]:
+                        send_message(sock, "users", f"OK|{usuario['rol']}")
+                        print("Usuario autenticado.")
+                    else:
+                        send_message(sock, "users", "ERROR: credenciales inválidas")
+                        print("Intento de login fallido.")
+                elif usuario and usuario["rol"] != "admin":
+                    if usuario["nombre"] == datos["nombre"]:
+                        send_message(sock, "users", f"OK|{usuario['rol']}")
+                        print("Usuario autenticado.")
+                    else:
+                        send_message(sock, "users", "ERROR: usuario inválidas")
+                        print("Intento de login fallido.")
+
+            elif accion == "consultar":
+                usuarios = cargar_usuarios()
+                usuario = next((u for u in usuarios if u["rut"] == datos["rut"]), None)
                 if usuario:
                     send_message(sock, "users", f"OK|{usuario['rol']}")
-                    print("Usuario autenticado.")
                 else:
-                    send_message(sock, "users", "ERROR: credenciales inválidas")
-                    print("Intento de login fallido.")
+                    send_message(sock, "users", "ERROR: Usuario no encontrado")
+                
         except Exception as e:
             print(f"Error al procesar el mensaje: {e}")
             send_message(sock, "users", f"ERROR: {str(e)}")
