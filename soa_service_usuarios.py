@@ -49,7 +49,7 @@ try:
                 else:
                     resultado = ""
                     for u in usuarios:
-                        resultado += f"ID: {u['id']} | {u['nombre']} | {u['email']} |  {u['rut']} | {u['rol']}\n"
+                        resultado += f"ID: {u['id']} | {u['nombre']} | {u.get('email', 'sin email')} |  {u['rut']} | {u['rol']}\n"
                     send_message(sock, "users", resultado)
                     print("Usuarios listados.")
             elif accion == "login":
@@ -75,12 +75,26 @@ try:
 
             elif accion == "consultar":
                 usuarios = cargar_usuarios()
+                print(f"Usuarios cargados: {usuarios}")
                 usuario = next((u for u in usuarios if u["rut"] == datos["rut"]), None)
                 if usuario:
                     send_message(sock, "users", f"OK|{usuario['rol']}")
                 else:
                     send_message(sock, "users", "ERROR: Usuario no encontrado")
-                
+            elif accion == "eliminar":
+                usuarios = cargar_usuarios()
+                if not usuarios:
+                    send_message(sock, "users", "No hay usuarios registrados")
+                else:
+                    rut_eliminar = datos["rut"]
+                    if not any(u["rut"] == rut_eliminar for u in usuarios):
+                        send_message(sock, "users", "ERROR: RUT no encontrado")
+                    else:
+                        nuevo_usuarios = [u for u in usuarios if u["rut"] != rut_eliminar]
+                        guardar_usuarios(nuevo_usuarios)
+                        send_message(sock, "users", "Usuario eliminado")
+                        print("Usuario eliminado.")
+
         except Exception as e:
             print(f"Error al procesar el mensaje: {e}")
             send_message(sock, "users", f"ERROR: {str(e)}")
