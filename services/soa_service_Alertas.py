@@ -1,3 +1,5 @@
+import sys
+sys.path.append('..')
 from soa_lib import connect_to_bus, send_message, receive_message
 import time
 
