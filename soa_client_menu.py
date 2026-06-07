@@ -70,6 +70,7 @@ try:
                 print("2. Gestión de inventario")
                 print("3. Gestión de reportes")
                 print("4. Gestión de multas")
+                print("5. Gestión de préstamos")
                 opcionAdmin = input("Seleccione una opción: ")
                 if opcionAdmin == '0':
                     break
@@ -113,12 +114,13 @@ try:
                         break
                 elif opcionAdmin == '2':
                     while True:
+                        print("0. Salir")
                         print("\n1. Agregar producto")
                         print("2. Quitar producto")
                         print("3. Listar Productos")
-                        print("4. Salir")
                         opcion = input("Seleccione una opción: ")
-
+                        if opcion == "0":
+                            break
                         if opcion == '1':
                             entrada = input('\nIngrese nombre del producto:')
                             if not entrada:
@@ -165,21 +167,104 @@ try:
                             if respuesta.startswith("OK"):
                                 respuesta = respuesta[2:]
                             print(f"Respuesta: {respuesta}")
-                        elif opcion == '4':
-                            break
-                        else:
-                            print("Opción no válida. Por favor seleccione una opción del 1 al 4.")
                 elif opcionAdmin == '3':
-                    pass
+                    while True:
+                        print("\n1. Ver todos los préstamos")
+                        print("2. Registra devolución")
+                        print("0. Volver")
+                        opcion = input("Seleccione una opción: ")
+                        if opcion == "0":
+                            break
+                        if opcion == "1":
+                            send_message(sock, "inven", "listar_json|{}")
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            inventario = json.loads(respuesta)
+                            productos = {p["id"]: p["nombre"] for p in inventario}
+
+                            send_message(sock, "loans", "listar_json|{}")
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            prestamos = json.loads(respuesta)
+
+                            for p in prestamos:
+                                nombre = productos.get(p["id_producto"], "Desconocido")
+                                print(f"ID: {p['id']} | Producto: {nombre} | RUT: {p['rut_usuario']} | Estado: {p['estado']} | Multa: {'Sí' if p['multa'] else 'No'}")
+
+                        if opcion == "2":
+                            send_message(sock,"loans", "listar|{}")
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            print(f"Respuesta: {respuesta}")
+                            id_prestamo = input("Seleccione prestamo que se devolvió")
+                            if not id_prestamo.isdigit():
+                                print("¡Error! El ID del producto debe ser un número.")
+                                continue
+                            payload = f"devolver|{json.dumps({'id': int(id_prestamo)})}"
+                            send_message(sock, "loans", payload)
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            print(f"Respuesta: {respuesta}")
+
                 elif opcionAdmin == '4':
                     pass
-            else:
+                else:
+                    print("Opción no válida. Por favor seleccione una opción del 1 al 5.")
+            else:   
+                print("0. Salir")
                 print("\n1. Ver inventario")
-                print("2. Salir")
+                print("2. Solicitar préstamo")
+                print("3. Ver mis préstamos")
                 opcion = input("Seleccione una opción: ")
                 if opcion == '1':
-                    pass
+                    send_message(sock, "inven", "listar_json|{}")
+                    data = receive_message(sock)
+                    respuesta = data[5:].decode()
+                    if respuesta.startswith("OK"):
+                        respuesta = respuesta[2:]
+                    inventario = json.loads(respuesta)
+                    for p in inventario:
+                        print(f"ID: {p['id']} | {p['nombre']} | Stock: {p['stock']} | {p['categoria']}")
+
+                    
                 elif opcion == '2':
+                    send_message(sock, "inven", "listar|{}")
+                    data = receive_message(sock)
+                    respuesta = data[5:].decode()
+                    if respuesta.startswith("OK"):
+                        respuesta = respuesta[2:]
+                    print(f"Respuesta: {respuesta}")
+                    producto_id = input("Ingrese el ID del producto que desea solicitar: ")
+                    if not producto_id.isdigit():
+                        print("¡Error! El ID del producto debe ser un número.")
+                        continue
+                    datos = {"rut_usuario": rut, "id_producto": int(producto_id)}
+                    payload = f"solicitar|{json.dumps(datos)}"
+                    send_message(sock, "loans", payload)
+                    data = receive_message(sock)
+                    respuesta = data[5:].decode()
+                    if respuesta.startswith("OK"):
+                        respuesta = respuesta[2:]
+                    print(f"Respuesta: {respuesta}")
+
+                elif opcion == '3':
+                    datos = {"rut_usuario": rut}
+                    payload = f"mis_prestamos|{json.dumps(datos)}"
+                    send_message(sock, "loans", payload)
+                    data = receive_message(sock)
+                    respuesta = data[5:].decode()
+                    if respuesta.startswith("OK"):
+                        respuesta = respuesta[2:]
+                    print(f"respuesta: {respuesta}")
+                elif opcion == '0':
                     break
             
 finally:

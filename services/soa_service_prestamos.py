@@ -35,19 +35,7 @@ try:
             datos = json.loads(mensaje[1])
             print(f"Acción recibida: '{accion}' longitud: {len(accion)}")
 
-            if accion == "solicitar":
-                prestamos = cargar_prestamos()
-                nuevo_id = 1 if not prestamos else max(p["id"] for p in prestamos) + 1
-                datos["id"] = nuevo_id
-                datos["fecha_solicitud"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                datos["fecha_devolucion"] = (datetime.datetime.now() + datetime.timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")
-                datos["estado"] = "activo"
-                datos["multa"] = False
-                prestamos.append(datos)
-                guardar_prestamos(prestamos)
-                send_message(sock, "loans", "Préstamo solicitado")
-                print("Préstamo solicitado.")
-            elif accion == "devolver":
+            if accion == "devolver":
                 prestamos = cargar_prestamos()
                 id_prestamos = datos["id"]
                 prestamo = next((p for p in prestamos if p["id"] == id_prestamos), None)
@@ -58,6 +46,40 @@ try:
                     guardar_prestamos(prestamos)
                     send_message(sock, "loans", "Préstamo devuelto")
                     print("Préstamo devuelto.")
+            elif accion == "mis_prestamos":
+                prestamos = cargar_prestamos()
+                rut_usuario = datos["rut_usuario"]
+                mis_prestamos = [p for p in prestamos if p["rut_usuario"] == rut_usuario]
+                if not mis_prestamos:
+                    send_message(sock, "loans", "No tienes préstamos registrados")
+                else:
+                    resultado = ""
+                    for p in mis_prestamos:
+                        if p["estado"] == "activo" and datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") > p["fecha_devolucion"]:
+                            p["multa"] = True
+                        resultado += f"ID: {p['id']} | id producto: {p['id_producto']} | Fecha Solicitud: {p['fecha_solicitud']} | Fecha Devolución: {p['fecha_devolucion']} | Estado: {p['estado']} | Multa: {'Sí' if p['multa'] else 'No'}\n"
+                    guardar_prestamos(prestamos)
+                    send_message(sock, "loans", resultado)
+                    print("Préstamos listados.")
+            elif accion == "solicitar":
+                prestamos = cargar_prestamos()
+                tiene_multa = any(p for p in prestamos if p["rut_usuario"] == datos["rut_usuario"] and p["multa"])
+                if tiene_multa:
+                    send_message(sock, "loans", "ERROR: No puedes solicitar un nuevo préstamo debido a una multa pendiente")
+                else:
+                    nuevo_id = 1 if not prestamos else max(p["id"] for p in prestamos) + 1
+                    datos["id"] = nuevo_id
+                    datos["fecha_solicitud"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    datos["fecha_devolucion"] = (datetime.datetime.now() + datetime.timedelta(days=14)).strftime("%Y-%m-%d %H:%M:%S")
+                    datos["estado"] = "activo"
+                    datos["multa"] = False
+                    prestamos.append(datos)
+                    guardar_prestamos(prestamos)
+                    send_message(sock, "loans", "Préstamo solicitado")
+                    print("Préstamo solicitado.")
+            elif accion == "listar_json":
+                prestamos = cargar_prestamos()
+                send_message(sock, "loans", json.dumps(prestamos))
             elif accion == "listar":
                 prestamos = cargar_prestamos()
                 if not prestamos:

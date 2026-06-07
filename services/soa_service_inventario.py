@@ -71,6 +71,9 @@ try:
                         guardar_inventario(nuevo_inventario)
                         send_message(sock, "inven", "Producto eliminado")
                         print("Producto eliminado del inventario.")
+            elif accion == "listar_json":
+                inventario = cargar_inventario()
+                send_message(sock, "inven", json.dumps(inventario))
 
             else:
                 send_message(sock, "inven", "Acción no reconocida")
