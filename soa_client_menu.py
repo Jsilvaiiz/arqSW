@@ -62,7 +62,7 @@ try:
                 print("Credenciales incorrectas.")
         else:
             print("Usuario no encontrado, debe registrarse.")
-    if rol:
+    if rol: 
         while True:
             if rol == "admin":
                 print("\n0. Salir")
