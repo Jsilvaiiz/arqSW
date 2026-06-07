@@ -328,6 +328,12 @@ try:
                         if opcion == "1":
                             print("\n>>> PANTALLA: CREAR NUEVO REPORTE")
                             categoria = input("Categoría (pérdida / daño / mantenimiento): ").strip()
+                            send_message(sock, "inven", "listar|{}")
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            print(f"Respuesta: {respuesta}")
                             id_recurso = input("ID del Recurso/Elemento: ").strip()
                             descripcion = input("Descripción del incidente: ").strip()
                             
