@@ -170,7 +170,8 @@ try:
                 elif opcionAdmin == '5':
                     while True:
                         print("\n1. Ver todos los préstamos")
-                        print("2. Registra devolución")
+                        print("2. Registra préstamo")
+                        print("3. Registra devolución")
                         print("0. Volver")
                         opcion = input("Seleccione una opción: ")
                         if opcion == "0":
@@ -194,8 +195,32 @@ try:
                             for p in prestamos:
                                 nombre = productos.get(p["id_producto"], "Desconocido")
                                 print(f"ID: {p['id']} | Producto: {nombre} | RUT: {p['rut_usuario']} | Estado: {p['estado']} | Multa: {'Sí' if p['multa'] else 'No'}")
-
                         if opcion == "2":
+                            send_message(sock, "inven", "listar|{}")
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            print(f"Respuesta: {respuesta}")
+                            producto_id = input("Ingrese el ID del producto que desea solicitar el usuario: ")
+                            if not producto_id.isdigit():
+                                print("¡Error! El ID del producto debe ser un número.")
+                                continue
+                            rut_cliente = input("Ingrese el rut del usuario que quiere registrar el préstamo: ")
+                            datos = {"rut_usuario": rut_cliente, "id_producto": int(producto_id)}
+                            payload = f"solicitar|{json.dumps(datos)}"
+                            send_message(sock, "loans", payload)
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            print(f"Respuesta: {respuesta}")
+                            if "solicitado" in respuesta.lower():
+                                payload = f"actualizar_stock|{json.dumps({ 'id': int(producto_id), 'cantidad': -1})}"
+                                send_message(sock, "inven", payload)
+                                data = receive_message(sock) 
+
+                        if opcion == "3":
                             send_message(sock,"loans", "listar|{}")
                             data = receive_message(sock)
                             respuesta = data[5:].decode()
