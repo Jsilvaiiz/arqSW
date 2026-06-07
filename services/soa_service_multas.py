@@ -77,8 +77,8 @@ try:
                 else:
                     send_message(sock, "multa", "OK")
             elif accion == "listar":
-                listar = cargar_multas()
-                if not listar:
+                multas = cargar_multas()
+                if not multas:
                     send_message(sock, "multa", "No hay multas")
                 else:
                     resultado = ""
