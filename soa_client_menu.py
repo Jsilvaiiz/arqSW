@@ -368,12 +368,7 @@ try:
                         if opcion == "4":
                             print("\n>>> PANTALLA: ELIMINAR REPORTE (Requiere privilegios)")
                             id_reporte = input("ID del reporte a eliminar: ").strip()
-                            rol = input("Ingrese su rol de usuario: ").strip()
                             
-                            if not id_reporte or not rol:
-                                print("\n¡Error! Faltan parámetros.")
-                                input("\nPresione Enter para volver a la pantalla inicial...")
-                                continue
                                 
                             payload = f"ELIMINAR;{id_reporte};{rol}"
                             send_message(sock, "repor", payload)

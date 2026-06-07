@@ -118,9 +118,6 @@ try:
                 id_rep = int(partes[1])
                 rol_usuario = partes[2].lower()
                 
-                if rol_usuario != "administrador":
-                    send_message(sock, nombre_servicio, "ERROR: Permiso denegado. Solo el 'administrador' puede eliminar reportes")
-                    continue
                     
                 if id_rep in base_datos_reportes:
                     del base_datos_reportes[id_rep]
