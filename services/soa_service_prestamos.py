@@ -80,6 +80,16 @@ try:
             elif accion == "listar_json":
                 prestamos = cargar_prestamos()
                 send_message(sock, "loans", json.dumps(prestamos))
+            elif accion == "limpiar_multa":
+                prestamos = cargar_prestamos()
+                id_prestamo = datos["id_prestamo"]
+                prestamo = next((p for p in prestamos if p["id"] == id_prestamo), None)
+                if prestamo:
+                    prestamo["multa"] = False
+                    guardar_prestamos(prestamos)
+                    send_message(sock, "loans", "Multa limpiada")
+                else:
+                    send_message(sock, "loans", "ERROR: préstamo no encontrado")
             elif accion == "listar":
                 prestamos = cargar_prestamos()
                 if not prestamos:

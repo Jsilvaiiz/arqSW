@@ -6,7 +6,7 @@ try:
     while True:
         print("\n1. Generar multa")
         print("2. Actualizar estado de Multa")
-        print("3. Salir")
+        print("3. Volver")
         opcion = input("Seleccione una opción: ")
     
         if not opcion.isdigit():

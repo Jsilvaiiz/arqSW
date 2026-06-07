@@ -5,9 +5,9 @@ import json
 import os
 sock = connect_to_bus()
 
-def guardar_multa(id_prestamo, monto):
+def guardar_multa(id_prestamo, monto, rut_usuario):
     MULTAS_FILE = 'multas.json'
-    multa = {"id_prestamo": id_prestamo, "monto": monto, "estado": "pendiente"}
+    multa = {"rut_usuario":rut_usuario, "id_prestamo": id_prestamo, "monto": monto, "estado": "pendiente"}
     #if not os.path.exists(MULTAS_FILE):
     multas = cargar_multas()
     multas.append(multa)
@@ -51,9 +51,7 @@ try:
         # Extraer el payload (salta los 5 caracteres del nombre del servicio)
         mensaje = data[5:].decode()
         print(f"Mensaje recibido del cliente: '{mensaje}'")
-        try:
-            send_message(sock, "multa", "OK")
-            print("Respuesta 'OK' enviada.")     
+        try:  
             payload = mensaje.split("|")
             print(f"Payload dividido: {payload}")
             accion = payload[0]
@@ -62,14 +60,31 @@ try:
             monto = datos.get("monto")
             if accion == "generar":
                 #generar multa
-                guardar_multa(id_prestamo, monto)
+                guardar_multa(id_prestamo, monto, datos.get("rut_usuario"))
                 print(f"Multa generada")
+                send_message(sock, "multa", "Multa generada")
             elif accion == "actualizar":
                 #actualizar estado de multa
                 actualizar_multa(id_prestamo, monto)
                 print(f"Multa actualizada")
-
-
+                send_message(sock, "multa", "Multa Actualizada")
+            elif accion == "verificar":
+                multas = cargar_multas()
+                rut_usuario = datos["rut_usuario"]
+                tiene_multa = any(m for m in multas if m["rut_usuario"] == rut_usuario and m["estado"] == "pendiente")
+                if tiene_multa:
+                    send_message(sock, "multa", "ERROR: tiene una multa pendiente")
+                else:
+                    send_message(sock, "multa", "OK")
+            elif accion == "listar":
+                listar = cargar_multas()
+                if not listar:
+                    send_message(sock, "multa", "No hay multas")
+                else:
+                    resultado = ""
+                    for m in multas:
+                        resultado += f"ID prestamo: {m['id_prestamo']} | RUT: {m['rut_usuario']} | Monto: {m['monto']} | Estado: {m['estado']}\n"
+                    send_message(sock, "multa", resultado)
         except ValueError:
             send_message(sock, "multa", "Error: Formato incorrecto")
 

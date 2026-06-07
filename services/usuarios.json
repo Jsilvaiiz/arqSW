@@ -14,5 +14,13 @@
     "rol": "usuario",
     "contrasena": "",
     "id": 2
+  },
+  {
+    "rut": "123412345",
+    "nombre": "admin",
+    "email": "admin@admin",
+    "rol": "admin",
+    "contrasena": "admin",
+    "id": 3
   }
 ]

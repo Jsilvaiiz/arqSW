@@ -196,29 +196,39 @@ try:
                                 nombre = productos.get(p["id_producto"], "Desconocido")
                                 print(f"ID: {p['id']} | Producto: {nombre} | RUT: {p['rut_usuario']} | Estado: {p['estado']} | Multa: {'Sí' if p['multa'] else 'No'}")
                         if opcion == "2":
-                            send_message(sock, "inven", "listar|{}")
+                            rut_cliente = input("Ingrese el RUT del usuario: ")
+                            payload = f"verificar|{json.dumps({'rut_usuario': rut_cliente})}"
+                            send_message(sock, "multa", payload)
                             data = receive_message(sock)
                             respuesta = data[5:].decode()
                             if respuesta.startswith("OK"):
                                 respuesta = respuesta[2:]
-                            print(f"Respuesta: {respuesta}")
-                            producto_id = input("Ingrese el ID del producto que desea solicitar el usuario: ")
-                            if not producto_id.isdigit():
-                                print("¡Error! El ID del producto debe ser un número.")
-                                continue
-                            rut_cliente = input("Ingrese el rut del usuario que quiere registrar el préstamo: ")
-                            datos = {"rut_usuario": rut_cliente, "id_producto": int(producto_id)}
-                            payload = f"solicitar|{json.dumps(datos)}"
-                            send_message(sock, "loans", payload)
-                            data = receive_message(sock)
-                            respuesta = data[5:].decode()
-                            if respuesta.startswith("OK"):
-                                respuesta = respuesta[2:]
-                            print(f"Respuesta: {respuesta}")
-                            if "solicitado" in respuesta.lower():
-                                payload = f"actualizar_stock|{json.dumps({ 'id': int(producto_id), 'cantidad': -1})}"
-                                send_message(sock, "inven", payload)
-                                data = receive_message(sock) 
+                            if "ERROR" in respuesta:
+                                print(f"No puedes solicitar un préstamo: {respuesta}")
+                            else:
+                                send_message(sock, "inven", "listar|{}")
+                                data = receive_message(sock)
+                                respuesta = data[5:].decode()
+                                if respuesta.startswith("OK"):
+                                    respuesta = respuesta[2:]
+                                print(f"Respuesta: {respuesta}")
+                                producto_id = input("Ingrese el ID del producto que desea solicitar el usuario: ")
+                                if not producto_id.isdigit():
+                                    print("¡Error! El ID del producto debe ser un número.")
+                                    continue
+                                rut_cliente = input("Ingrese el rut del usuario que quiere registrar el préstamo: ")
+                                datos = {"rut_usuario": rut_cliente, "id_producto": int(producto_id)}
+                                payload = f"solicitar|{json.dumps(datos)}"
+                                send_message(sock, "loans", payload)
+                                data = receive_message(sock)
+                                respuesta = data[5:].decode()
+                                if respuesta.startswith("OK"):
+                                    respuesta = respuesta[2:]
+                                print(f"Respuesta: {respuesta}")
+                                if "solicitado" in respuesta.lower():
+                                    payload = f"actualizar_stock|{json.dumps({ 'id': int(producto_id), 'cantidad': -1})}"
+                                    send_message(sock, "inven", payload)
+                                    data = receive_message(sock) 
 
                         if opcion == "3":
                             send_message(sock,"loans", "listar|{}")
@@ -240,7 +250,66 @@ try:
                             print(f"Respuesta: {respuesta}")
 
                 elif opcionAdmin == '4':
-                    pass
+                    print("\n1. Generar multa")
+                    print("2. Actualizar estado de Multa")
+                    print("3. Listado de multas")
+                    print("4. Volver")
+                    opcion = input("Seleccione una opción: ")
+                
+                    if not opcion.isdigit():
+                        print("¡Error! Por favor ingrese solo números.")
+                        continue
+                    #cuando se crea una multa empieza con estado pendiente, luego se puede actualizar a pagada o cancelada, pero no se puede volver a pendiente
+                    if opcion == '1':
+                        entrada = input('Ingrese el Id del prestamo: ') # es suficiente para reconocer el caso ?
+                        if not entrada.isdigit(): #nose si hace falta el id del user
+                            print("¡Error!")
+                            continue
+                        monto = input('Ingrese el monto de la multa: ')
+                        if not monto.replace('.', '', 1).isdigit():
+                            print("Monto inválido, se asignará el monto por defecto de $500.")
+                            monto = "500"
+                        #    print("¡Error! Por favor ingrese un monto válido.")
+                        #    continue
+                        rut_multado = input("Ingrese el RUT del usuario multado: ")
+                        datos = {"id_prestamo": int(entrada), "monto": float(monto), "rut_usuario": rut_multado}
+                        payload = f"generar|{json.dumps(datos)}"
+                        send_message(sock, "multa", payload)   
+                        print(f"Esperando respuesta del servicio ({entrada}s)...")
+                        data = receive_message(sock)        
+                        if data:
+                        # Mostrar el mensaje (quitando los 5 caracteres del nombre del servicio)
+                            print(f"Respuesta recibida: {data[5:].decode()}")
+
+                    if opcion == '2':
+                        id_multa = input('Ingrese el ID de la multa a actualizar: ')
+                        if not id_multa.isdigit():
+                            print("¡Error! El ID debe ser un número.")
+                            continue
+                        payload = f"actualizar|{json.dumps({'id_prestamo': int(id_multa)})}"
+                        send_message(sock, "multa", payload)
+                        data = receive_message(sock)
+                        respuesta = data[5:].decode()
+                        if respuesta.startswith("OK"):
+                            respuesta = respuesta[2:]
+                        if "actualizada" in respuesta.lower():
+                            id_prestamo = id_multa
+                            payload = f"limpiar_multa|{json.dumps({'id_prestamo': int(id_prestamo)})}"
+                            send_message(sock, "loans", payload)
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            print(f"La multa pasó de pendiente a pagada.")
+                    if opcion == "3":
+                        send_message(sock, "multa", "listar|{}")
+                        data = receive_message(sock)
+                        respuesta = data[5:].decode()
+                        if respuesta.startswith("OK"):
+                            respuesta = respuesta[2:]
+                        print(f"Multas:\n{respuesta}")
+                    if opcion == '4':
+                        break
                 else:
                     print("Opción no válida. Por favor seleccione una opción del 1 al 5.")
             else:   
@@ -261,28 +330,37 @@ try:
 
                     
                 elif opcion == '2':
-                    send_message(sock, "inven", "listar|{}")
+                    payload = f"verificar|{json.dumps({'rut_usuario': rut})}"
+                    send_message(sock, "multa", payload)
                     data = receive_message(sock)
                     respuesta = data[5:].decode()
                     if respuesta.startswith("OK"):
                         respuesta = respuesta[2:]
-                    print(f"Respuesta: {respuesta}")
-                    producto_id = input("Ingrese el ID del producto que desea solicitar: ")
-                    if not producto_id.isdigit():
-                        print("¡Error! El ID del producto debe ser un número.")
-                        continue
-                    datos = {"rut_usuario": rut, "id_producto": int(producto_id)}
-                    payload = f"solicitar|{json.dumps(datos)}"
-                    send_message(sock, "loans", payload)
-                    data = receive_message(sock)
-                    respuesta = data[5:].decode()
-                    if respuesta.startswith("OK"):
-                        respuesta = respuesta[2:]
-                    print(f"Respuesta: {respuesta}")
-                    if "solicitado" in respuesta.lower():
-                        payload = f"actualizar_stock|{json.dumps({ 'id': int(producto_id), 'cantidad': -1})}"
-                        send_message(sock, "inven", payload)
-                        data = receive_message(sock) 
+                    if "ERROR" in respuesta:
+                        print(f"No puedes solicitar un préstamo: {respuesta}")
+                    else:
+                        send_message(sock, "inven", "listar|{}")
+                        data = receive_message(sock)
+                        respuesta = data[5:].decode()
+                        if respuesta.startswith("OK"):
+                            respuesta = respuesta[2:]
+                        print(f"Respuesta: {respuesta}")
+                        producto_id = input("Ingrese el ID del producto que desea solicitar: ")
+                        if not producto_id.isdigit():
+                            print("¡Error! El ID del producto debe ser un número.")
+                            continue
+                        datos = {"rut_usuario": rut, "id_producto": int(producto_id)}
+                        payload = f"solicitar|{json.dumps(datos)}"
+                        send_message(sock, "loans", payload)
+                        data = receive_message(sock)
+                        respuesta = data[5:].decode()
+                        if respuesta.startswith("OK"):
+                            respuesta = respuesta[2:]
+                        print(f"Respuesta: {respuesta}")
+                        if "solicitado" in respuesta.lower():
+                            payload = f"actualizar_stock|{json.dumps({ 'id': int(producto_id), 'cantidad': -1})}"
+                            send_message(sock, "inven", payload)
+                            data = receive_message(sock) 
                 elif opcion == '3':
                     datos = {"rut_usuario": rut}
                     payload = f"mis_prestamos|{json.dumps(datos)}"
