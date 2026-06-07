@@ -167,7 +167,7 @@ try:
                             if respuesta.startswith("OK"):
                                 respuesta = respuesta[2:]
                             print(f"Respuesta: {respuesta}")
-                elif opcionAdmin == '3':
+                elif opcionAdmin == '5':
                     while True:
                         print("\n1. Ver todos los préstamos")
                         print("2. Registra devolución")
@@ -254,7 +254,10 @@ try:
                     if respuesta.startswith("OK"):
                         respuesta = respuesta[2:]
                     print(f"Respuesta: {respuesta}")
-
+                    if "solicitado" in respuesta.lower():
+                        payload = f"actualizar_stock|{json.dumps({ 'id': int(producto_id), 'cantidad': -1})}"
+                        send_message(sock, "inven", payload)
+                        data = receive_message(sock) 
                 elif opcion == '3':
                     datos = {"rut_usuario": rut}
                     payload = f"mis_prestamos|{json.dumps(datos)}"

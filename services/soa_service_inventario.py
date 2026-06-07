@@ -74,7 +74,13 @@ try:
             elif accion == "listar_json":
                 inventario = cargar_inventario()
                 send_message(sock, "inven", json.dumps(inventario))
-
+            elif accion == "actualizar_stock":
+                inventario = cargar_inventario()
+                producto = next((p for p in inventario if p["id"] == datos["id"]), None)
+                if producto:
+                    producto["stock"] = int(producto["stock"]) + datos["cantidad"]
+                    guardar_inventario(inventario)
+                    send_message(sock, "inven", "Stock actualizado")
             else:
                 send_message(sock, "inven", "Acción no reconocida")
                 print("Acción no reconocida.")

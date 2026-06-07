@@ -6,5 +6,13 @@
     "email": "admin@mail.com",
     "rol": "admin",
     "contrasena": "admin"
+  },
+  {
+    "rut": "222222222",
+    "nombre": "hugo",
+    "email": "hugo@hugmail.com",
+    "rol": "usuario",
+    "contrasena": "",
+    "id": 2
   }
 ]
