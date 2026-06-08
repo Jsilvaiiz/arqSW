@@ -71,6 +71,7 @@ try:
                 print("3. Gestión de reportes")
                 print("4. Gestión de multas")
                 print("5. Gestión de préstamos")
+                print("6. Búsqueda de inventario")
                 opcionAdmin = input("Seleccione una opción: ")
                 if opcionAdmin == '0':
                     break
@@ -204,7 +205,7 @@ try:
                                         print(f"ID: {p['id']} | Producto: {nombre} | RUT: {p['rut_usuario']} | Estado: {p['estado']} | Multa: {'Sí' if p['multa'] else 'No'}")
                             except json.JSONDecodeError:
                                 print("No hay préstamos registrados")                 
-                                       
+
                         if opcion == "2":
                             rut_cliente = input("Ingrese el RUT del usuario: ")
                             payload = f"verificar|{json.dumps({'rut_usuario': rut_cliente})}"
@@ -387,8 +388,20 @@ try:
                                 print(f"\nRespuesta del Bus: {data[5:].decode()}")
                         if opcion == "5":
                             break
+                elif opcionAdmin == 6:
+                    opcion = input("Seleccione una acción (1-5): ").strip()
+                    print("\n=========================================")
+                    print("     SODB - BÚSQUEDA DE INVENTARIO (SOA) ")
+                    print("=========================================")
+                    print("  [1] Buscar por Nombre")
+                    print("  [2] Buscar por Descripción")
+                    print("  [3] Buscar por Categoría")
+                    print("  [4] Ver todo el Inventario (Listar)")
+                    print("  [5] Salir del sistema")
+                    print("=========================================")
+                    
                 else:
-                    print("Opción no válida. Por favor seleccione una opción del 1 al 5.")
+                    print("Opción no válida. Por favor seleccione una opción del 1 al 6.")
             else:   
                 print("0. Salir")
                 print("\n1. Ver inventario")
