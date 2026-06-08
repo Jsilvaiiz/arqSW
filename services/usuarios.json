@@ -22,5 +22,69 @@
     "rol": "admin",
     "contrasena": "admin",
     "id": 3
+  },
+  {
+    "rut": "21068400k",
+    "nombre": "joaquin",
+    "email": "joaquin@gmail.com",
+    "rol": "admin",
+    "contrasena": "admin",
+    "id": 4
+  },
+  {
+    "rut": "444444444",
+    "nombre": "alfonso",
+    "email": "alfonso@gmail",
+    "rol": "usuario",
+    "contrasena": "",
+    "id": 5
+  },
+  {
+    "rut": "234523456",
+    "nombre": "cristian",
+    "email": "cri@gmail.com",
+    "rol": "usuario",
+    "contrasena": "",
+    "id": 6
+  },
+  {
+    "rut": "255555555",
+    "nombre": "palmera",
+    "email": "a@a",
+    "rol": "usuario",
+    "contrasena": "",
+    "id": 7
+  },
+  {
+    "rut": "266666666",
+    "nombre": "hola",
+    "email": "hola",
+    "rol": "usuario",
+    "contrasena": "",
+    "id": 8
+  },
+  {
+    "rut": "123456789",
+    "nombre": "hola",
+    "email": "adios",
+    "rol": "usuario",
+    "contrasena": "",
+    "id": 9
+  },
+  {
+    "rut": "987654321",
+    "nombre": "benjamin",
+    "email": "benjamin@gmail",
+    "rol": "usuario",
+    "contrasena": "",
+    "id": 10
+  },
+  {
+    "rut": "098765432",
+    "nombre": "hugo2",
+    "email": "martinez@gmail",
+    "rol": "usuario",
+    "contrasena": "",
+    "id": 11
   }
 ]

@@ -4,64 +4,85 @@ import json
 try:
     sock = connect_to_bus()
     rol = None
+    opcion = input("¿Quiere iniciar sesión (1) o registrarse (2)?")
+    if opcion == "1":
+        while True:
+            rut = input("Ingrese el RUT del usuario ('q' para salir): ")
+            if rut == 'q':
+                print("Saliendo del programa.")
+                break
+            if not rut:
+                print("¡Error! El RUT no puede estar vacío.")
+                continue
+            if len(rut) < 7 or len(rut) > 9:
+                print("¡Error! El RUT debe tener entre 7 y 9 caracteres.")
+                continue
+            datos = {"rut": rut}
 
-    while True:
-        rut = input("Ingrese el RUT del usuario ('q' para salir): ")
-        if rut == 'q':
-            print("Saliendo del programa.")
-            break
-        if not rut:
-            print("¡Error! El RUT no puede estar vacío.")
-            continue
-        if len(rut) < 7 or len(rut) > 9:
-            print("¡Error! El RUT debe tener entre 7 y 9 caracteres.")
-            continue
-        datos = {"rut": rut}
-
-        payload = f"consultar|{json.dumps({'rut': rut})}"
+            payload = f"consultar|{json.dumps({'rut': rut})}"
+            send_message(sock, "users", payload)
+            data = receive_message(sock)
+            respuesta = data[5:].decode()
+            if respuesta.startswith("OK"):
+                respuesta = respuesta[2:]
+            print(f"Respuesta raw: {data}")
+            print(f"Respuesta: {respuesta}")
+            if respuesta.startswith("OK|admin"):
+                contrasena = input("Ingrese la contraseña del usuario: ")
+                payload = f"login|{json.dumps({'rut': rut, 'contrasena': contrasena})}"
+                if not contrasena:
+                    print("¡Error! La contraseña no puede estar vacía.")
+                    continue
+                send_message(sock, "users", payload)
+                data = receive_message(sock)
+                respuesta = data[5:].decode()
+                if respuesta.startswith("OK"):
+                    respuesta = respuesta[2:]
+                    if "|" in respuesta:
+                        rol = respuesta.split("|")[1]
+                        break
+                    else:  
+                        print("Credenciales incorrectas.")
+                else:  
+                    print("Credenciales incorrectas.")
+            elif respuesta.startswith("OK|usuario"):
+                nombre_usuario = input("Ingrese el nombre del usuario: ")
+                payload = f"login|{json.dumps({'rut': rut, 'nombre': nombre_usuario})}"
+                send_message(sock, "users", payload)
+                data = receive_message(sock)
+                respuesta = data[5:].decode()
+                print(f"Respuesta: {respuesta}")
+                if respuesta.startswith("OK"):
+                    respuesta = respuesta[2:]
+                    if "|" in respuesta:
+                        rol = respuesta.split("|")[1]
+                        break
+                    else:  
+                        print("Credenciales incorrectas.")
+                else:  
+                    print("Credenciales incorrectas.")
+            else:
+                print("Usuario no encontrado, debe registrarse.")
+    elif opcion == "2":
+        rut_nuevo = input("Ingrese el RUT del nuevo usuario: ")
+        nombre_nuevo = input("Ingrese el nombre del nuevo usuario: ")
+        email_nuevo = input("Ingrese el email del nuevo usuario: ")
+        rol_nuevo = "usuario"
+        contrasena_nuevo = ""
+        datos_nuevo = {"rut": rut_nuevo, "nombre": nombre_nuevo, "email": email_nuevo, "rol": rol_nuevo, "contrasena": contrasena_nuevo}
+        payload = f"registrar|{json.dumps(datos_nuevo)}"
         send_message(sock, "users", payload)
         data = receive_message(sock)
         respuesta = data[5:].decode()
-        if respuesta.startswith("OK"):
-            respuesta = respuesta[2:]
-        print(f"Respuesta raw: {data}")
         print(f"Respuesta: {respuesta}")
-        if respuesta.startswith("OK|admin"):
-            contrasena = input("Ingrese la contraseña del usuario: ")
-            payload = f"login|{json.dumps({'rut': rut, 'contrasena': contrasena})}"
-            if not contrasena:
-                print("¡Error! La contraseña no puede estar vacía.")
-                continue
-            send_message(sock, "users", payload)
-            data = receive_message(sock)
-            respuesta = data[5:].decode()
-            if respuesta.startswith("OK"):
-                respuesta = respuesta[2:]
-                if "|" in respuesta:
-                    rol = respuesta.split("|")[1]
-                    break
-                else:  
-                    print("Credenciales incorrectas.")
-            else:  
-                print("Credenciales incorrectas.")
-        elif respuesta.startswith("OK|usuario"):
-            nombre_usuario = input("Ingrese el nombre del usuario: ")
-            payload = f"login|{json.dumps({'rut': rut, 'nombre': nombre_usuario})}"
-            send_message(sock, "users", payload)
-            data = receive_message(sock)
-            respuesta = data[5:].decode()
-            print(f"Respuesta: {respuesta}")
-            if respuesta.startswith("OK"):
-                respuesta = respuesta[2:]
-                if "|" in respuesta:
-                    rol = respuesta.split("|")[1]
-                    break
-                else:  
-                    print("Credenciales incorrectas.")
-            else:  
-                print("Credenciales incorrectas.")
+        if "agregado" in respuesta.lower():
+            rut = rut_nuevo
+            rol = "usuario"
         else:
-            print("Usuario no encontrado, debe registrarse.")
+            print(f"Error al registrarse: {respuesta}")
+    else:
+        print("Por favor seleccione una opción ")
+
     if rol: 
         while True:
             if rol == "admin":
@@ -272,6 +293,35 @@ try:
                             continue
                         #cuando se crea una multa empieza con estado pendiente, luego se puede actualizar a pagada o cancelada, pero no se puede volver a pendiente
                         if opcion == '1':
+                            send_message(sock, "inven", "listar_json|{}")
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            try:
+                                inventario = json.loads(respuesta)
+                                productos = {p["id"]: p["nombre"] for p in inventario}
+                            except json.JSONDecodeError:
+                                productos = {}
+                                print("No se pudo encontrar inventario")
+
+                            send_message(sock, "loans", "listar_json|{}")
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            try:
+                                prestamos = json.loads(respuesta)
+                                if not prestamos:
+                                    print("No hay préstamos registrados")
+                                else:
+                                    for p in prestamos:
+                                        nombre = productos.get(p["id_producto"], "Desconocido")
+                                        print(f"ID: {p['id']} | Producto: {nombre} | RUT: {p['rut_usuario']} | Estado: {p['estado']} | Multa: {'Sí' if p['multa'] else 'No'}")
+                            except json.JSONDecodeError:
+                                print("No hay préstamos registrados")    
+
+
                             entrada = input('Ingrese el Id del prestamo: ') # es suficiente para reconocer el caso ?
                             if not entrada.isdigit(): #nose si hace falta el id del user
                                 print("¡Error!")
@@ -461,7 +511,7 @@ try:
 
                 else:
                     print("Opción no válida. Por favor seleccione una opción del 1 al 6.")
-            else:   
+            elif rol == "usuario":   
                 print("0. Salir")
                 print("\n1. Ver inventario")
                 print("2. Solicitar préstamo")
@@ -521,6 +571,10 @@ try:
                     print(f"respuesta: {respuesta}")
                 elif opcion == '0':
                     break
+
+
+
+            
             
 finally:
     print("Cerrando conexión con el bus...")
