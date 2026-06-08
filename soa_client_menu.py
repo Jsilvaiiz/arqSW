@@ -170,8 +170,8 @@ try:
                 elif opcionAdmin == '5':
                     while True:
                         print("\n1. Ver todos los préstamos")
-                        print("2. Registra préstamo")
-                        print("3. Registra devolución")
+                        print("2. Registrar préstamo")
+                        print("3. Registrar devolución")
                         print("0. Volver")
                         opcion = input("Seleccione una opción: ")
                         if opcion == "0":
@@ -182,19 +182,29 @@ try:
                             respuesta = data[5:].decode()
                             if respuesta.startswith("OK"):
                                 respuesta = respuesta[2:]
-                            inventario = json.loads(respuesta)
-                            productos = {p["id"]: p["nombre"] for p in inventario}
+                            try:
+                                inventario = json.loads(respuesta)
+                                productos = {p["id"]: p["nombre"] for p in inventario}
+                            except json.JSONDecodeError:
+                                productos = {}
+                                print("No se pudo encontrar inventario")
 
                             send_message(sock, "loans", "listar_json|{}")
                             data = receive_message(sock)
                             respuesta = data[5:].decode()
                             if respuesta.startswith("OK"):
                                 respuesta = respuesta[2:]
-                            prestamos = json.loads(respuesta)
-
-                            for p in prestamos:
-                                nombre = productos.get(p["id_producto"], "Desconocido")
-                                print(f"ID: {p['id']} | Producto: {nombre} | RUT: {p['rut_usuario']} | Estado: {p['estado']} | Multa: {'Sí' if p['multa'] else 'No'}")
+                            try:
+                                prestamos = json.loads(respuesta)
+                                if not prestamos:
+                                    print("No hay préstamos registrados")
+                                else:
+                                    for p in prestamos:
+                                        nombre = productos.get(p["id_producto"], "Desconocido")
+                                        print(f"ID: {p['id']} | Producto: {nombre} | RUT: {p['rut_usuario']} | Estado: {p['estado']} | Multa: {'Sí' if p['multa'] else 'No'}")
+                            except json.JSONDecodeError:
+                                print("No hay préstamos registrados")                 
+                                       
                         if opcion == "2":
                             rut_cliente = input("Ingrese el RUT del usuario: ")
                             payload = f"verificar|{json.dumps({'rut_usuario': rut_cliente})}"
@@ -216,7 +226,6 @@ try:
                                 if not producto_id.isdigit():
                                     print("¡Error! El ID del producto debe ser un número.")
                                     continue
-                                rut_cliente = input("Ingrese el rut del usuario que quiere registrar el préstamo: ")
                                 datos = {"rut_usuario": rut_cliente, "id_producto": int(producto_id)}
                                 payload = f"solicitar|{json.dumps(datos)}"
                                 send_message(sock, "loans", payload)
