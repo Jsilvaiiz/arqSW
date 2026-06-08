@@ -394,18 +394,71 @@ try:
                                 print(f"\nRespuesta del Bus: {data[5:].decode()}")
                         if opcion == "5":
                             break
-                elif opcionAdmin == 6:
-                    opcion = input("Seleccione una acción (1-5): ").strip()
-                    print("\n=========================================")
-                    print("     SODB - BÚSQUEDA DE INVENTARIO (SOA) ")
-                    print("=========================================")
-                    print("  [1] Buscar por Nombre")
-                    print("  [2] Buscar por Descripción")
-                    print("  [3] Buscar por Categoría")
-                    print("  [4] Ver todo el Inventario (Listar)")
-                    print("  [5] Salir del sistema")
-                    print("=========================================")
-                    
+                elif opcionAdmin == "6":
+                    while True:
+                        print("\n=========================================")
+                        print("     SODB - BÚSQUEDA DE INVENTARIO (SOA) ")
+                        print("=========================================")
+                        print("  [1] Buscar por Nombre")
+                        print("  [2] Buscar por Descripción")
+                        print("  [3] Buscar por Categoría")
+                        print("  [4] Ver todo el Inventario (Listar)")
+                        print("  [5] Salir del sistema")
+                        print("=========================================")
+                        opcion = input("Seleccione una acción (1-5): ").strip()
+                        if opcion == "1":
+                            print("\n>>> PANTALLA: BUSCAR POR NOMBRE")
+                            valor = input("Ingrese el nombre a buscar: ").strip()
+                            if not valor:
+                                print("\n¡Error! El campo no puede estar vacío.")
+                                continue
+                            
+                            payload = f"BUSCAR;nombre;{valor}"
+                            send_message(sock, "binve", payload)
+                            
+                            print("Enviando al BUS, esperando resultados...")
+                            data = receive_message(sock)
+                            if data:
+                                print(f"\nResultados del Bus: {data[5:].decode()}")
+                        if opcion == "2":
+                            print("\n>>> PANTALLA: BUSCAR POR DESCRIPCIÓN")
+                            valor = input("Ingrese texto de la descripción a buscar: ").strip()
+                            if not valor:
+                                print("\n¡Error! El campo no puede estar vacío.")
+                                continue
+                                
+                            payload = f"BUSCAR;descripcion;{valor}"
+                            send_message(sock, "binve", payload)
+                            
+                            data = receive_message(sock)
+                            if data:
+                                print(f"\nResultados del Bus: {data[5:].decode()}")
+                        if opcion == "3":
+                            print("\n>>> PANTALLA: BUSCAR POR CATEGORÍA")
+                            valor = input("Ingrese la categoría a buscar: ").strip()
+                            if not valor:
+                                print("\n¡Error! El campo no puede estar vacío.")
+                                continue
+                                
+                            payload = f"BUSCAR;categoria;{valor}"
+                            send_message(sock, "binve", payload)
+                            
+                            data = receive_message(sock)
+                            if data:
+                                print(f"\nResultados del Bus: {data[5:].decode()}")
+                        if opcion == "4":
+                            send_message(sock, "inven", "listar|{}")
+                            data = receive_message(sock)
+                            respuesta = data[5:].decode()
+                            if respuesta.startswith("OK"):
+                                respuesta = respuesta[2:]
+                            print(f"Respuesta: {respuesta}")
+                            if data:
+                                print(data[5:].decode())
+                        if opcion == "5":
+                            print("\nVolviendo al menú")
+                            break
+
                 else:
                     print("Opción no válida. Por favor seleccione una opción del 1 al 6.")
             else:   
