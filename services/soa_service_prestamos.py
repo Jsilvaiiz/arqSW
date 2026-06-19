@@ -90,6 +90,17 @@ try:
                     send_message(sock, "loans", "Multa limpiada")
                 else:
                     send_message(sock, "loans", "ERROR: préstamo no encontrado")
+            elif accion == "asignar_multa":
+                prestamos = cargar_prestamos()
+                id_prestamo = datos["id_prestamo"]
+                prestamo = next((p for p in prestamos if p["id"] == id_prestamo), None)
+                if prestamo:
+                    prestamo["multa"] = True
+                    guardar_prestamos(prestamos)
+                    send_message(sock, "loans", "OK|Multa asignada al préstamo")
+                    print(f"Multa (True) asignada al préstamo ID: {id_prestamo}.")
+                else:
+                    send_message(sock, "loans", "ERROR: préstamo no encontrado")        
             elif accion == "listar":
                 prestamos = cargar_prestamos()
                 if not prestamos:

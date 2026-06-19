@@ -1,0 +1,38 @@
+[
+  {
+    "rut_usuario": "222222222",
+    "id_prestamo": 1,
+    "monto": 20000.0,
+    "estado": "pagada"
+  },
+  {
+    "rut_usuario": "112233445",
+    "id_prestamo": 1,
+    "monto": 123.0,
+    "estado": "pendiente"
+  },
+  {
+    "rut_usuario": "112233445",
+    "id_prestamo": 4,
+    "monto": 15000.0,
+    "estado": "pagada"
+  },
+  {
+    "rut_usuario": null,
+    "id_prestamo": 2,
+    "monto": 14444.0,
+    "estado": "pendiente"
+  },
+  {
+    "rut_usuario": "123212321",
+    "id_prestamo": 2,
+    "monto": 123333.0,
+    "estado": "pendiente"
+  },
+  {
+    "rut_usuario": "112233445",
+    "id_prestamo": 4,
+    "monto": 25000.0,
+    "estado": "pendiente"
+  }
+]
